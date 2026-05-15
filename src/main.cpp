@@ -3,12 +3,12 @@
 
 /*
     LAST CHANGES:
-    delay() in main loop changed into millis()
+    joined separate obstacles into one list
 */
 
 /*
     TO DO:
-    join separate obstacles into one list
+    
 */
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
@@ -64,8 +64,11 @@ public:
 
 // OBJECTS
 Player car;
-Obstacle obstacle(16,0);
-Obstacle obstacle2(8,1);
+Obstacle obstacles[2] = {
+    Obstacle(16,0),
+    Obstacle(8,1)
+};
+
 
 void checkCollision(Obstacle& obst);
 
@@ -82,21 +85,25 @@ void loop() {
     unsigned long currentMillis = millis();
   
     if (currentMillis - previousMillis > 100) {
-
         previousMillis = currentMillis;
 
         lcd.clear();
 
         car.Steering(); 
-        obstacle.moveLeft();
-        obstacle2.moveLeft();
         
-        checkCollision(obstacle);
-        checkCollision(obstacle2);
+        // Obstacles movement & collisions
+        for (Obstacle& obst : obstacles) {
+            obst.moveLeft();
+            checkCollision(obst);
+        }
+        
 
         car.Write();
-        obstacle.Write();
-        obstacle2.Write();
+
+        // Obstacles writing to screen
+        for (Obstacle& obst : obstacles) {
+            obst.Write();
+        }
         
     }
     
