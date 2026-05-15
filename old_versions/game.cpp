@@ -1,28 +1,68 @@
-#include "Classes.h"
+#include<Arduino.h>
+#include<LiquidCrystal.h>
 
 /*
     LAST CHANGES:
-    -divided whole program into main and Classes.h
+    joined separate obstacles into one list
+*/
 
-
+/*
     TO DO:
     
 */
 
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
-// VARIABLES
-unsigned long previousMillis = 0;
-const long interval = 100;
-
-// FUNCTIONS DECLARATIONS
-void checkBtnValues();
 int getBtnValue();
-void checkCollision(Obstacle& obst);
-void gameOver();
+
+
+// CLASSES
+class Player {
+public:
+
+    String CAR = "DXD";
+    bool positionY = 0;
+
+    void Steering() {
+        if (getBtnValue() < 150) { positionY = 0; } // UP
+        else if (getBtnValue() < 300) { positionY = 1;} // DOWN
+    }
+
+    void Write() {
+        lcd.setCursor(0,positionY);
+        lcd.print(CAR);
+    }
+
+};
+class Obstacle {
+public:
+    
+    int positionX;
+    int positionY;
+
+    String OBSTACLE = "H";
+
+    Obstacle(int posX,int posY) {
+        positionX = posX;
+        positionY = posY;
+    }
+
+    void Write() {
+        lcd.setCursor(positionX,positionY);
+        lcd.print(OBSTACLE);
+    }
+
+    void moveLeft() {
+        positionX -= 1;
+        if (positionX < 0 ) { positionX = 16; }
+    }
+
+
+
+};
 
 
 // OBJECTS
-LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 Player car;
 Obstacle obstacles[2] = {
     Obstacle(16,0),
@@ -30,11 +70,15 @@ Obstacle obstacles[2] = {
 };
 
 
-
+void checkCollision(Obstacle& obst);
 
 void setup() {
   lcd.begin(16, 2);  
 }
+
+
+unsigned long previousMillis = 0;
+const long interval = 100;
 
 void loop() {
 
@@ -45,7 +89,7 @@ void loop() {
 
         lcd.clear();
 
-        car.Steering(getBtnValue()); 
+        car.Steering(); 
         
         // Obstacles movement & collisions
         for (Obstacle& obst : obstacles) {
@@ -54,15 +98,16 @@ void loop() {
         }
         
 
-        car.Write(lcd);
+        car.Write();
 
         // Obstacles writing to screen
         for (Obstacle& obst : obstacles) {
-            obst.Write(lcd);
+            obst.Write();
         }
         
     }
     
+
 }
 
 // BUTTONS
@@ -90,7 +135,7 @@ int getBtnValue() {
 
 // OTHER
 void checkCollision(Obstacle& obst) {
-    if (car.getPositionY() == obst.getPositionY() && obst.getPositionX() == 0) { gameOver(); }
+    if (car.positionY == obst.positionY && obst.positionX == 0) { gameOver(); }
 }
 
 void gameOver() {
