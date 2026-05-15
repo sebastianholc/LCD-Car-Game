@@ -2,15 +2,21 @@
 #include<LiquidCrystal.h>
 
 /*
-    Logika sterowania samochodem zrobiona.
-    Cały gracz zamknięty do jednej klasy.
-    Zrobiona również klasa od przeszkody.
+    LAST CHANGES:
+    delay() in main loop changed into millis()
+*/
+
+/*
+    TO DO:
+    join separate obstacles into one list
 */
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 int getBtnValue();
 
+
+// CLASSES
 class Player {
 public:
 
@@ -19,7 +25,7 @@ public:
 
     void Steering() {
         if (getBtnValue() < 150) { positionY = 0; } // UP
-        else if (getBtnValue() < 300) { positionY = 1;} // DOWn
+        else if (getBtnValue() < 300) { positionY = 1;} // DOWN
     }
 
     void Write() {
@@ -28,7 +34,6 @@ public:
     }
 
 };
-
 class Obstacle {
 public:
     
@@ -49,37 +54,56 @@ public:
 
     void moveLeft() {
         positionX -= 1;
+        if (positionX < 0 ) { positionX = 16; }
     }
 
 
 
 };
 
+
+// OBJECTS
 Player car;
 Obstacle obstacle(16,0);
+Obstacle obstacle2(8,1);
+
+void checkCollision(Obstacle& obst);
 
 void setup() {
-  lcd.begin(16, 2);
-
-  
+  lcd.begin(16, 2);  
 }
+
+
+unsigned long previousMillis = 0;
+const long interval = 100;
 
 void loop() {
-  
-    car.Steering(); 
-    obstacle.moveLeft();
-    
-    car.Write();
-    obstacle.Write();
-    
-    checkCollision();
 
-    delay(100);
-    lcd.clear();
+    unsigned long currentMillis = millis();
+  
+    if (currentMillis - previousMillis > 100) {
+
+        previousMillis = currentMillis;
+
+        lcd.clear();
+
+        car.Steering(); 
+        obstacle.moveLeft();
+        obstacle2.moveLeft();
+        
+        checkCollision(obstacle);
+        checkCollision(obstacle2);
+
+        car.Write();
+        obstacle.Write();
+        obstacle2.Write();
+        
+    }
     
 
 }
 
+// BUTTONS
 void checkBtnValues() {
     
     /*
@@ -97,14 +121,14 @@ void checkBtnValues() {
     lcd.clear();
     
 }
-
 int getBtnValue() {
     int buttonOutput = analogRead(A0);
     return buttonOutput;
 }
 
-void checkCollision() {
-    if (car.positionY == obstacle.positionY && obstacle.positionX == 0) { gameOver(); }
+// OTHER
+void checkCollision(Obstacle& obst) {
+    if (car.positionY == obst.positionY && obst.positionX == 0) { gameOver(); }
 }
 
 void gameOver() {
